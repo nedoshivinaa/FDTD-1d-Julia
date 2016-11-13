@@ -16,6 +16,8 @@ import os
 import random
 import h5py
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 # Make sure that we are using QT5
 matplotlib.use('Qt5Agg')
 from PyQt5 import QtCore, QtWidgets
@@ -27,7 +29,7 @@ from matplotlib.figure import Figure
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
-n=0
+n=1500
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -59,7 +61,8 @@ class MyStaticMplCanvas(MyMplCanvas):
     def compute_initial_figure(self):
         #t = arange(0.0, 3.0, 0.01)
         #s = sin(2*pi*t)
-        self.axes.plot(Ex[0,:])
+        self.axes.plot(arange(0,2000,1),Ex[:,1])
+#plt.plot(arange(0,2000,1),Ex[1,:])
 
 
 class MyDynamicMplCanvas(MyMplCanvas):
@@ -69,7 +72,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
         MyMplCanvas.__init__(self, *args, **kwargs)
         timer = QtCore.QTimer(self)
         timer.timeout.connect(self.update_figure)
-        timer.start(0)
+        timer.start(1)
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3], [1, 2, 0, 4], 'r')
@@ -78,10 +81,9 @@ class MyDynamicMplCanvas(MyMplCanvas):
         global n
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
         #l = [random.randint(0, 10) for i in range(4)]
-        if n>1999:
-            n=0         
-        self.axes.plot(Ex[n,:], 'r')
-        
+        if n>2999:
+            n=0
+        self.axes.plot(arange(0,2000,1),Hy[:,n], 'r')
         n+=1
         print(n)
         self.draw()
