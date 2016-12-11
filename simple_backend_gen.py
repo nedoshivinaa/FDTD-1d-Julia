@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # embedding_in_qt5.py --- Simple Qt5 application embedding matplotlib canvases
 #
@@ -39,6 +39,8 @@ Hy= f["Hy"][()]
 dt=f["dt"][()]
 dz=f["dz"][()]
 x=f["x"][()]
+t=f["t"][()]
+signal=f["signal"][()]
 timeSteps=f["timeSteps"][()]
 xSteps=f["xSteps"][()]
 left_bord_ind=f["left_bord_ind"][()]
@@ -81,11 +83,15 @@ class MyStaticMplCanvas(MyMplCanvas):
         #s = sin(2*pi*t)
         #print(x.shape)
         #print(Ex.shape)
-        self.axes.plot(x,Ex[:,1])
-        self.axes.hold(True)
-        self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
-        self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
-        self.axes.set_xlim(x[0],x[-1])
+        #self.axes.plot(x,Ex[:,1])
+        self.axes.plot(t*10**6,signal)
+        
+        #self.axes.hold(True)
+        #self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
+        #self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
+        #self.axes.set_xlim(x[0],x[-1])
+        self.axes.set_xlim(t[0]*10**6,t[-1]*10**6)
+        #print(t[0],t[-1])
         self.axes.set_ylim(-1.5,1.5)
         self.axes.grid(True)
 
