@@ -29,7 +29,7 @@ from matplotlib.figure import Figure
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
-t_speed=10
+t_speed=1
 
 filename="data.jld"
 f = h5py.File(filename, 'r')
@@ -120,7 +120,8 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.axes.plot(x,Hy[:,1]*120*np.pi,color='m')
         self.axes.plot(x,Ex[:,1],color='b',lw=2)
         self.axes.set_xlim(x[0],x[-1])
-        self.axes.set_ylim(-1.5,1.5)
+        #self.axes.set_ylim(-1.5,1.5)
+        self.axes.set_ylim(-2.,2.)
         self.axes.grid(True)
 
     def update_figure(self):
@@ -138,7 +139,8 @@ class MyDynamicMplCanvas(MyMplCanvas):
         n+=t_speed
         #print(n)
         self.axes.set_xlim(x[0],x[-1])
-        self.axes.set_ylim(-1.5,1.5)
+        #self.axes.set_ylim(-1.5,1.5)
+        self.axes.set_ylim(-2.,2.)
         self.axes.grid(True)
         self.draw()
 
