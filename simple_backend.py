@@ -47,7 +47,7 @@ right_bord_ind=f["right_bord_ind"][()]
 
 f.close()
 
-n=timeSteps
+n=0
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
