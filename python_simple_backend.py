@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # embedding_in_qt5.py --- Simple Qt5 application embedding matplotlib canvases
 #
@@ -19,7 +19,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 # Make sure that we are using QT5
-matplotlib.use('Qt5Agg')
+#matplotlib.use('Qt5Agg')
 from PyQt5 import QtCore, QtWidgets
 
 from numpy import arange, sin, pi
@@ -29,7 +29,25 @@ from matplotlib.figure import Figure
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
-n=1500
+t_speed=10
+
+filename="data.jld"
+f = h5py.File(filename, 'r')
+Ex= f["Ex"][()]
+Hy= f["Hy"][()]
+#save("data.jld", "Ex", Ex, "Hy", Hy, "dt", dt, "dz", dz, "G", G, "x", x, "xSteps", xSteps, "timeSteps", timeSteps,"left_bord_ind",left_bord_ind,"right_bord_ind",right_bord_ind)
+dt=f["dt"][()]
+dz=f["dz"][()]
+x=f["x"][()]
+timeSteps=f["timeSteps"][()]
+xSteps=f["xSteps"][()]
+left_bord_ind=f["left_bord_ind"][()]
+right_bord_ind=f["right_bord_ind"][()]
+
+
+f.close()
+
+n=0
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -61,7 +79,16 @@ class MyStaticMplCanvas(MyMplCanvas):
     def compute_initial_figure(self):
         #t = arange(0.0, 3.0, 0.01)
         #s = sin(2*pi*t)
-        self.axes.plot(arange(0,2000,1),Ex[:,1])
+        #print(x.shape)
+        #print(Ex.shape)
+        self.axes.plot(x,Ex[:,1])
+        self.axes.hold(True)
+        self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
+        self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
+        self.axes.set_xlim(x[0],x[-1])
+        self.axes.set_ylim(-1.5,1.5)
+        self.axes.grid(True)
+
 #plt.plot(arange(0,2000,1),Ex[1,:])
 
 
@@ -75,17 +102,29 @@ class MyDynamicMplCanvas(MyMplCanvas):
         timer.start(1)
 
     def compute_initial_figure(self):
-        self.axes.plot([0, 1, 2, 3], [1, 2, 0, 4], 'r')
+        self.axes.plot(x,Hy[:,1]*120*np.pi,color='m')
+        self.axes.plot(x,Ex[:,1],color='b',lw=2)
+        self.axes.set_xlim(x[0],x[-1])
+        self.axes.set_ylim(-1.5,1.5)
+        self.axes.grid(True)
 
     def update_figure(self):
         global n
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
         #l = [random.randint(0, 10) for i in range(4)]
-        if n>2999:
+        if n>timeSteps-1:
             n=0
-        self.axes.plot(arange(0,2000,1),Hy[:,n], 'r')
-        n+=1
-        print(n)
+        self.axes.plot(x,Hy[:,n]*120*np.pi,color='m')
+        self.axes.hold(True)
+        self.axes.plot(x,Ex[:,n],color='b',lw=2)
+        self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
+        self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
+        self.axes.hold(False)
+        n+=t_speed
+        #print(n)
+        self.axes.set_xlim(x[0],x[-1])
+        self.axes.set_ylim(-1.5,1.5)
+        self.axes.grid(True)
         self.draw()
 
 
@@ -129,22 +168,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self, "About",
                                     """embedding_in_qt5.py example
 Copyright 2005 Florent Rougon, 2006 Darren Dale, 2015 Jens H Nielsen
-
 This program is a simple example of a Qt5 application embedding matplotlib
 canvases.
-
 It may be used and modified with no restriction; raw copies as well as
 modified versions may be distributed without limitation.
-
 This is modified from the embedding in qt4 example to show the difference
 between qt4 and qt5"""
                                 )
 
-filename="data.jld"
-f = h5py.File(filename, 'r')
-Ex= f["Ex"][()]
-Hy= f["Hy"][()]
-f.close()
+
 
 
 qApp = QtWidgets.QApplication(sys.argv)
