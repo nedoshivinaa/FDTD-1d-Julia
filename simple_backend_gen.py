@@ -29,7 +29,7 @@ from matplotlib.figure import Figure
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
-t_speed=10
+t_speed=1
 
 filename="data.jld"
 f = h5py.File(filename, 'r')
@@ -39,14 +39,17 @@ Hy= f["Hy"][()]
 dt=f["dt"][()]
 dz=f["dz"][()]
 x=f["x"][()]
+t=f["t"][()]
+signal=f["signal"][()]
+signal_pos=f["signal_pos"][()]
 timeSteps=f["timeSteps"][()]
 xSteps=f["xSteps"][()]
 left_bord_ind=f["left_bord_ind"][()]
 right_bord_ind=f["right_bord_ind"][()]
 
-
 f.close()
 
+#n=timeSteps
 n=0
 
 class MyMplCanvas(FigureCanvas):
@@ -75,21 +78,33 @@ class MyMplCanvas(FigureCanvas):
 
 class MyStaticMplCanvas(MyMplCanvas):
     """Simple canvas with a sine plot."""
+    def __init__(self, *args, **kwargs):
+        MyMplCanvas.__init__(self, *args, **kwargs)
+        timer = QtCore.QTimer(self)
+        timer.timeout.connect(self.update_figure)
+        timer.start(0.1)
 
     def compute_initial_figure(self):
-        #t = arange(0.0, 3.0, 0.01)
-        #s = sin(2*pi*t)
-        #print(x.shape)
-        #print(Ex.shape)
-        self.axes.plot(x,Ex[:,1])
+        self.axes.plot(t*10**6,signal)        
         self.axes.hold(True)
-        self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
-        self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
-        self.axes.set_xlim(x[0],x[-1])
+        self.axes.plot([t[0]*10**6,t[0]*10**6],[-10,10],color='r')
+        self.axes.hold(False)
+        self.axes.set_xlim(t[0]*10**6,t[-1]*10**6)
         self.axes.set_ylim(-1.5,1.5)
         self.axes.grid(True)
-
-#plt.plot(arange(0,2000,1),Ex[1,:])
+        
+    def update_figure(self):
+        global n
+        if n>timeSteps-1:
+            n=0
+        self.axes.plot(t*10**6,signal)        
+        self.axes.hold(True)
+        self.axes.plot([t[n]*10**6,t[n]*10**6],[-10,10],color='r')
+        self.axes.hold(False)
+        self.axes.set_xlim(t[0]*10**6,t[-1]*10**6)
+        self.axes.set_ylim(-1.5,1.5)
+        self.axes.grid(True)
+        self.draw()
 
 
 class MyDynamicMplCanvas(MyMplCanvas):
@@ -99,31 +114,33 @@ class MyDynamicMplCanvas(MyMplCanvas):
         MyMplCanvas.__init__(self, *args, **kwargs)
         timer = QtCore.QTimer(self)
         timer.timeout.connect(self.update_figure)
-        timer.start(1)
+        timer.start(0.1)
 
     def compute_initial_figure(self):
         self.axes.plot(x,Hy[:,1]*120*np.pi,color='m')
         self.axes.plot(x,Ex[:,1],color='b',lw=2)
         self.axes.set_xlim(x[0],x[-1])
-        self.axes.set_ylim(-1.5,1.5)
+        #self.axes.set_ylim(-1.5,1.5)
+        self.axes.set_ylim(-2.,2.)
         self.axes.grid(True)
 
     def update_figure(self):
         global n
-        # Build a list of 4 random integers between 0 and 10 (both inclusive)
-        #l = [random.randint(0, 10) for i in range(4)]
         if n>timeSteps-1:
             n=0
-        self.axes.plot(x,Hy[:,n]*120*np.pi,color='m')
+        self.axes.plot(x,Hy[:,n]*120*np.pi,color='m')        
         self.axes.hold(True)
         self.axes.plot(x,Ex[:,n],color='b',lw=2)
+        self.axes.plot([x[signal_pos],x[signal_pos]],[signal[n],signal[n]],'ro')
+        
         self.axes.plot([x[left_bord_ind-1],x[left_bord_ind-1]],[-10,10],color="g")
         self.axes.plot([x[right_bord_ind-1],x[right_bord_ind-1]],[-10,10],color="g")
         self.axes.hold(False)
         n+=t_speed
         #print(n)
         self.axes.set_xlim(x[0],x[-1])
-        self.axes.set_ylim(-1.5,1.5)
+        #self.axes.set_ylim(-1.5,1.5)
+        self.axes.set_ylim(-2.,2.)
         self.axes.grid(True)
         self.draw()
 
@@ -168,10 +185,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self, "About",
                                     """embedding_in_qt5.py example
 Copyright 2005 Florent Rougon, 2006 Darren Dale, 2015 Jens H Nielsen
+
 This program is a simple example of a Qt5 application embedding matplotlib
 canvases.
+
 It may be used and modified with no restriction; raw copies as well as
 modified versions may be distributed without limitation.
+
 This is modified from the embedding in qt4 example to show the difference
 between qt4 and qt5"""
                                 )
